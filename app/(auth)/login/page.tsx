@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -9,7 +9,7 @@ import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MailIcon, LockIcon } from "@/components/ui/icons";
-import { saveAdminSession } from "@/lib/auth/adminSession";
+import { saveAdminSession, useAdminSession, useHasHydrated } from "@/lib/auth/adminSession";
 import { login } from "@/lib/api/adminAuth";
 import { ApiError } from "@/lib/api/http";
 
@@ -19,6 +19,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
+  const session = useAdminSession();
+  const hasHydrated = useHasHydrated();
+
+  // Already signed in (e.g. opened / or /login with a live session): straight
+  // to the dashboard rather than asking for a password that's already proven.
+  // Waits for hydration — before it, the session always reads as absent.
+  useEffect(() => {
+    if (hasHydrated && session) router.replace("/dashboard");
+  }, [hasHydrated, session, router]);
 
   const handleForgotPassword = () => {
     // Carrying the typed email forward saves retyping it on the next screen.

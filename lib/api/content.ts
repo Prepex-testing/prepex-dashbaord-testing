@@ -180,11 +180,21 @@ export const BULK_UPLOAD_PATHS = {
 
 export type BulkUploadTarget = keyof typeof BULK_UPLOAD_PATHS;
 
+/** A chapter named in the file that matched no existing chapter, so its rows were skipped. */
+export type SkippedChapter = {
+  subjectName: string;
+  chapterName: string;
+  reason: string;
+  rows: number;
+};
+
 export type BulkUploadResult = {
   /** Rows written. */
   count: number;
-  /** Set by the endpoints that resolve chapters by name as they import. */
+  /** Existing chapters that received rows. Uploads never create chapters. */
   chaptersTouched?: number;
+  skippedRows?: number;
+  skipped?: SkippedChapter[];
 };
 
 /**

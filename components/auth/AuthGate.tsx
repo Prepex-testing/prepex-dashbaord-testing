@@ -2,28 +2,30 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useAdminSession } from "@/lib/auth/adminSession";
+import { useAdminSession, useHasHydrated } from "@/lib/auth/adminSession";
 import { getProfile } from "@/lib/api/adminAuth";
 
 /**
  * Keeps the dashboard's pages behind a session.
  *
  * The session lives in localStorage, which doesn't exist during the server
- * render, so the first client render always reports "signed out". Redirecting
- * on that would bounce a signed-in admin to /login on every refresh — hence
- * the redirect runs in an effect, by which point the real session has been
- * read, and nothing is rendered until it's known.
+ * render. On a page load React hydrates with the server snapshot, so the first
+ * commit — and the effects it runs — sees "signed out" even when the admin is
+ * signed in; the real session only arrives in the render after. Redirecting on
+ * that first commit bounced every signed-in admin to /login on refresh, so the
+ * redirect waits for useHasHydrated, and nothing is rendered until it's known.
  *
  * This is a convenience, not the security boundary: every admin route on
  * dashboard-service verifies the access token itself.
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const session = useAdminSession();
+  const hasHydrated = useHasHydrated();
   const router = useRouter();
 
   useEffect(() => {
-    if (!session) router.replace("/login");
-  }, [session, router]);
+    if (hasHydrated && !session) router.replace("/login");
+  }, [hasHydrated, session, router]);
 
   // Stored tokens can be stale in ways only the server knows about — a
   // password changed from another tab or by another admin revokes them.

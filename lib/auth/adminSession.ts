@@ -136,6 +136,25 @@ export function useAdminSession(): AdminSession | null {
   return useSyncExternalStore(subscribe, getSessionSnapshot, getSessionServerSnapshot);
 }
 
+const subscribeNoop = () => () => {};
+
+/**
+ * False while React is hydrating — i.e. in exactly the renders where
+ * useAdminSession is still reporting the server snapshot (null) rather than
+ * what's in localStorage — and true from then on.
+ *
+ * "No session" can only be trusted once this is true. Both hooks are
+ * useSyncExternalStore, so they switch from server to client snapshots in the
+ * same render and can never disagree.
+ */
+export function useHasHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
+}
+
 /** Name to greet, falling back to something sensible before a session exists. */
 export function useAdminDisplayName(): string {
   const session = useAdminSession();

@@ -6,7 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { UploadDropzone } from "@/components/ui/UploadDropzone";
 import type { ResourceTypeDef } from "@/lib/resources/catalog";
-import { bulkUpload } from "@/lib/api/content";
+import { bulkUpload, type BulkUploadResult } from "@/lib/api/content";
 import { ApiError } from "@/lib/api/http";
 
 type AddResourceModalProps = {
@@ -49,7 +49,7 @@ function AddResourceForm({
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setUploading] = useState(false);
-  const [result, setResult] = useState<number | null>(null);
+  const [result, setResult] = useState<BulkUploadResult | null>(null);
 
   const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -61,8 +61,7 @@ function AddResourceForm({
       // Read in the browser rather than posting a FormData part: the bulk
       // endpoints take the raw file contents as the request body.
       const text = await file.text();
-      const { count } = await bulkUpload(type.uploadTarget, text);
-      setResult(count);
+      setResult(await bulkUpload(type.uploadTarget, text));
       onUploaded?.();
     } catch (err) {
       setError(
@@ -78,16 +77,40 @@ function AddResourceForm({
   // A bank file can add thousands of rows, so the count is worth showing
   // rather than closing straight away and leaving the admin to go and count.
   if (result !== null) {
+    const skipped = result.skipped ?? [];
     return (
       <div className="flex flex-col gap-5">
         <div className="pr-8">
           <h2 className="text-xl font-bold text-modal-text">Upload complete</h2>
           <p className="mt-1 text-sm text-modal-subtext">
-            {result.toLocaleString()}{" "}
-            {result === 1 ? type.singular.toLowerCase() : type.label.toLowerCase()}{" "}
-            added to the library.
+            {result.count.toLocaleString()}{" "}
+            {result.count === 1 ? type.singular.toLowerCase() : type.label.toLowerCase()}{" "}
+            added to the library
+            {result.chaptersTouched ? ` across ${result.chaptersTouched} chapters` : ""}.
           </p>
         </div>
+
+        {/* Uploads only fill existing chapters — anything the file names that
+            isn't one is listed here rather than silently dropped. */}
+        {skipped.length > 0 && (
+          <div className="rounded-xl bg-warning-bg px-4 py-3">
+            <p className="text-sm font-bold text-warning">
+              {(result.skippedRows ?? 0).toLocaleString()} rows skipped — chapter not found
+            </p>
+            <ul className="admin-scroll-panel mt-2 flex max-h-48 flex-col gap-1.5 overflow-y-auto text-xs text-modal-text">
+              {skipped.map((item) => (
+                <li key={`${item.subjectName}::${item.chapterName}`}>
+                  <span className="font-semibold">
+                    {item.subjectName} · {item.chapterName}
+                  </span>{" "}
+                  <span className="text-modal-subtext">
+                    ({item.rows} {item.rows === 1 ? "row" : "rows"}) — {item.reason}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <Button variant="primary" onClick={onClose}>
           Done
@@ -102,7 +125,8 @@ function AddResourceForm({
         <h2 className="text-xl font-bold text-modal-text">Add {type.label}</h2>
         <p className="mt-1 text-sm text-modal-subtext">
           Upload a bank file to add {type.label.toLowerCase()} to the library.
-          Subjects and chapters are matched by the names inside the file.
+          Rows are matched to existing chapters by the names inside the file;
+          chapters that don&apos;t exist are skipped, not created.
         </p>
       </div>
 
