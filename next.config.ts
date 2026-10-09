@@ -29,6 +29,8 @@ type WebpackConfig = {
 };
 
 const nextConfig: NextConfig = {
+  // Self-contained server for the Docker image (see Dockerfile).
+  output: "standalone",
   // Student profiles moved under Users; keep old links working.
   async redirects() {
     return [{ source: "/students/:id", destination: "/users/:id", permanent: true }];
