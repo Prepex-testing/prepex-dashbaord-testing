@@ -67,6 +67,18 @@ export function UserMenu() {
             role="menuitem"
             onClick={() => {
               setOpen(false);
+              router.push("/two-factor");
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-ink hover:bg-tint-strong"
+          >
+            Two-factor sign-in
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
               setLogoutConfirmOpen(true);
             }}
             className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-danger hover:bg-tint-strong"

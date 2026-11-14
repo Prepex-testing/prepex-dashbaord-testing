@@ -91,13 +91,22 @@ async function withRefresh<T>(attempt: (accessToken: string | null) => Promise<T
 
 /** Every admin-only call goes through here, so the token handling lives in one place. */
 export async function adminRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const { data } = await withRefresh((accessToken) =>
-    apiRequest<T>(`${DASHBOARD_API_URL}${path}`, {
-      ...options,
-      headers: { Authorization: `Bearer ${accessToken}`, ...options.headers },
-    }),
-  );
-  return data as T;
+  try {
+    const { data } = await withRefresh((accessToken) =>
+      apiRequest<T>(`${DASHBOARD_API_URL}${path}`, {
+        ...options,
+        headers: { Authorization: `Bearer ${accessToken}`, ...options.headers },
+      }),
+    );
+    return data as T;
+  } catch (err) {
+    // Launch step 1 (C6): when two-factor sign-in is required and not set up yet, the only page that works is its setup
+    if (err instanceof ApiError && err.code === "totp_setup_required" && typeof window !== "undefined" && window.location.pathname !== "/two-factor") {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- outside React (like redirectToLogin): a hard navigation is the point
+      window.location.assign("/two-factor");
+    }
+    throw err;
+  }
 }
 
 /** The same token handling for the raw-text bulk upload routes. */

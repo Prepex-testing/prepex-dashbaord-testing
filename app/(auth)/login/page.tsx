@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import { AuthCard } from "@/components/layout/AuthCard";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
+import { OtpInput } from "@/components/ui/OtpInput";
 import { Input } from "@/components/ui/Input";
 import { MailIcon, LockIcon } from "@/components/ui/icons";
 import { saveAdminSession, useAdminSession, useHasHydrated } from "@/lib/auth/adminSession";
@@ -17,6 +18,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Launch step 1 (C6): the server asks for the authenticator code when two-factor sign-in is on
+  const [needCode, setNeedCode] = useState(false);
+  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
   const session = useAdminSession();
@@ -46,7 +50,12 @@ export default function LoginPage() {
 
     setSubmitting(true);
     try {
-      const { admin, tokens } = await login(email.trim(), password);
+      if (needCode && code.length !== 6) {
+        setSubmitting(false);
+        setError("Enter the 6-digit code from your authenticator app.");
+        return;
+      }
+      const { admin, tokens } = await login(email.trim(), password, needCode ? code : undefined);
       saveAdminSession(admin, tokens);
       router.push("/dashboard");
     } catch (err) {
@@ -54,6 +63,12 @@ export default function LoginPage() {
       // change is already under way, and re-enabling the button first lets a
       // second submit through on a slow navigation.
       setSubmitting(false);
+      if (err instanceof ApiError && err.code === "totp_required") {
+        setNeedCode(true);
+        setError(null);
+        return;
+      }
+      if (err instanceof ApiError && err.code === "totp_invalid") setCode("");
       setError(
         err instanceof ApiError
           ? err.message
@@ -119,6 +134,13 @@ export default function LoginPage() {
             Forgot password?
           </button>
         </div>
+
+        {needCode && (
+          <div className="flex flex-col gap-2" data-testid="totp-step">
+            <p className="text-sm font-semibold text-ink">Enter the 6-digit code from your authenticator app</p>
+            <OtpInput value={code} onChange={setCode} />
+          </div>
+        )}
 
         <Button
           type="submit"
