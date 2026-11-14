@@ -75,7 +75,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mx-auto mt-8 flex w-full max-w-[460px] flex-col gap-5">
+      <form method="post" onSubmit={handleSubmit} className="mx-auto mt-8 flex w-full max-w-[460px] flex-col gap-5">
         {error && (
           <motion.p
             role="alert"
