@@ -29,6 +29,7 @@ import {
   levelLabel,
 } from "@/lib/users/directory";
 import { getStudent, type Student } from "@/lib/api/students";
+import { DeleteStudentCard } from "@/components/users/DeleteStudentCard";
 import { ApiError } from "@/lib/api/http";
 
 /** A 20x20 frame drawn with a 1.67px line, whatever viewBox the source SVG used. */
@@ -435,6 +436,8 @@ export function StudentProfileView({ studentId }: { studentId: string }) {
           />
         </Section>
       </div>
+
+      {student ? <DeleteStudentCard studentId={student.id} email={student.email} name={student.name} /> : null}
     </div>
   );
 }

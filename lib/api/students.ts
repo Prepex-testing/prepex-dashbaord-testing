@@ -99,3 +99,11 @@ export function listStudents(filters: StudentListFilters = {}): Promise<StudentL
 export function getStudent(id: string): Promise<Student> {
   return adminRequest<Student>(`/admin/students/${encodeURIComponent(id)}`);
 }
+
+/**
+ * Launch step 1 (C12): delete a student for good — account, notebooks, photos, logs, everything. Superadmins only; the
+ * server checks that `confirmEmail` is the student's address, so a slip can't delete the wrong row.
+ */
+export function deleteStudentForGood(id: string, confirmEmail: string): Promise<{ auth: boolean; core: { removed: boolean; files: number } }> {
+  return adminRequest(`/admin/students/${encodeURIComponent(id)}`, { method: "DELETE", body: JSON.stringify({ confirmEmail }) });
+}
