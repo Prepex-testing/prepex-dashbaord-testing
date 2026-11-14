@@ -159,7 +159,7 @@ export default function ChangePasswordPage() {
                   </p>
                 </div>
 
-                <form onSubmit={handleFormSubmit} className="flex flex-col gap-5">
+                <form method="post" onSubmit={handleFormSubmit} className="flex flex-col gap-5">
                   {error && <ErrorNote message={error} />}
 
                   <Input

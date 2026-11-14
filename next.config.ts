@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { adminSecurityHeaders } from "./lib/securityHeaders";
 
 // SVGs under assets/icons are imported as React components (same setup as the
 // prepex student app), so a single glyph can be recoloured with `currentColor`
@@ -31,6 +32,11 @@ type WebpackConfig = {
 const nextConfig: NextConfig = {
   // Self-contained server for the Docker image (see Dockerfile).
   output: "standalone",
+  // Launch step 1: no framework banner, and the security headers the ZAP baseline found missing.
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: adminSecurityHeaders(process.env, process.env.NODE_ENV !== "production") }];
+  },
   // Student profiles moved under Users; keep old links working.
   async redirects() {
     return [{ source: "/students/:id", destination: "/users/:id", permanent: true }];
