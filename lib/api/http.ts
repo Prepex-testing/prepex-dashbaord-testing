@@ -1,14 +1,17 @@
 export class ApiError extends Error {
   status: number;
+  /** The server's machine-readable reason, when it sends one (e.g. "totp_required"). */
+  code?: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
 /** The envelope every dashboard-service route replies with. */
-type ApiEnvelope<T> = { success: boolean; data?: T; message?: string };
+type ApiEnvelope<T> = { success: boolean; data?: T; message?: string; code?: string };
 
 export async function apiRequest<T>(
   url: string,
@@ -31,6 +34,7 @@ export async function apiRequest<T>(
     throw new ApiError(
       response.status,
       body?.message ?? "Something went wrong. Please try again.",
+      typeof body?.code === "string" ? body.code : undefined,
     );
   }
 

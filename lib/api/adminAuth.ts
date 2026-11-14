@@ -6,11 +6,21 @@ import {
 import type { AdminTokens, AdminUser } from "@/lib/auth/adminSession";
 
 /** POST /admin/login */
-export async function login(email: string, password: string) {
+export async function login(email: string, password: string, totpCode?: string) {
   return publicRequest<{ admin: AdminUser; tokens: AdminTokens }>("/admin/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, ...(totpCode ? { totpCode } : {}) }),
   });
+}
+
+/** POST /admin/2fa/setup — a new secret for the authenticator app (it is not on until confirmed). */
+export async function startTwoFactorSetup() {
+  return adminRequest<{ secret: string; otpauthUrl: string }>("/admin/2fa/setup", { method: "POST" });
+}
+
+/** POST /admin/2fa/enable — turns two-factor sign-in on once the app shows the right code. */
+export async function enableTwoFactor(code: string) {
+  return adminRequest<{ twoFactorEnabled: true }>("/admin/2fa/enable", { method: "POST", body: JSON.stringify({ code }) });
 }
 
 /** POST /admin/logout — revokes the refresh token server-side. */
