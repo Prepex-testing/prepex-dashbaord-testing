@@ -38,6 +38,18 @@ export const NAV_ITEMS = [
       </span>
     ),
   },
+  // Launch step 2 (B2)
+  {
+    href: "/feedback",
+    label: "Feedback",
+    icon: (
+      <span className={ICON_BOX_CLASS}>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={ICON_CLASS} aria-hidden="true">
+          <path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" />
+        </svg>
+      </span>
+    ),
+  },
 ];
 
 /** True when `pathname` is the nav item's route or one of its subpages. */
