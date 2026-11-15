@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
+import { AiSpendCard } from "@/components/dashboard/AiSpendCard";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AreaChart } from "@/components/charts/AreaChart";
@@ -183,6 +184,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <AiSpendCard />
         <Card>
           <CardHeader
             title="Library by Content Type"

@@ -47,6 +47,20 @@ export function getOverview(): Promise<AdminOverview> {
   return adminRequest<AdminOverview>("/admin/overview");
 }
 
+/** Launch step 2 (1d, C4): today's AI spend against the daily cap, and the last 14 IST days — GET /admin/ai-usage. */
+export type AiUsageDay = {
+  day: string;
+  costUsd: number;
+  calls: number;
+  refused: number;
+  alert: "none" | "50%" | "90%" | "cap";
+};
+export type AiUsage = { today: AiUsageDay & { capUsd: number; percent: number }; days: AiUsageDay[] };
+
+export function getAiUsage(): Promise<AiUsage> {
+  return adminRequest<AiUsage>("/admin/ai-usage");
+}
+
 export type Exam = {
   id: string;
   code: string;
