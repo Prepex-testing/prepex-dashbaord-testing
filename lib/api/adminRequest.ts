@@ -133,3 +133,16 @@ export async function publicMessageRequest(
   const { message } = await apiRequest<never>(`${DASHBOARD_API_URL}${path}`, options);
   return message;
 }
+
+/** Launch step 2 (B2): a binary admin route (a feedback screenshot), with the same token handling. Returns an object URL. */
+export async function adminBlobUrl(path: string): Promise<string> {
+  const blob = await withRefresh(async (accessToken) => {
+    const res = await fetch(`${DASHBOARD_API_URL}${path}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      throw new ApiError(res.status, body?.message ?? "Could not load the file.");
+    }
+    return res.blob();
+  });
+  return URL.createObjectURL(blob);
+}
