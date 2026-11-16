@@ -55,7 +55,15 @@ export type AiUsageDay = {
   refused: number;
   alert: "none" | "50%" | "90%" | "cap";
 };
-export type AiUsage = { today: AiUsageDay & { capUsd: number; percent: number }; days: AiUsageDay[] };
+/** One student's AI spend today (post-launch per-student cap). */
+export type AiStudentSpend = { userId: string; name: string | null; email: string | null; costUsd: number; calls: number; refused: number; capped: boolean };
+export type AiStudentsToday = { capUsd: number; students: number; capped: number; top: AiStudentSpend[] };
+export type AiUsage = {
+  today: AiUsageDay & { capUsd: number; percent: number };
+  days: AiUsageDay[];
+  /** Absent from a backend older than the per-student cap. */
+  perStudent?: AiStudentsToday;
+};
 
 export function getAiUsage(): Promise<AiUsage> {
   return adminRequest<AiUsage>("/admin/ai-usage");
